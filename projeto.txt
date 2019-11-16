@@ -1,0 +1,6 @@
+* Criar sala vazia
+* Criar esfera o mais perfeita possível
+* Ver a esfera de vários ângulos, com uma luz a incidir num ponto fixo
+* Pôr a bola a saltar (consoante a gravidade de preferência)
+* Pôr a bola a encolher?
+* Criar objetos de decoração que refletam a bola
