@@ -84,6 +84,7 @@ var projectionType = 0;
  
 // From learningwebgl.com
 
+
 // NEW --- Storing the vertices defining the cube faces
 
 vertices = [
@@ -203,7 +204,7 @@ function handleLoadedTexture(texture) {
 	
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+	//gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	gl.bindTexture(gl.TEXTURE_2D, null);
@@ -241,7 +242,7 @@ function initTexture() {
 		handleLoadedTexture(webGLTexture3)
 	}
 
-	webGLTexture3.image.src = "test2.gif";
+	/*webGLTexture3.image.src = "test2.gif";
 
 	webGLTexture4 = gl.createTexture();
 	webGLTexture4.image = new Image();
@@ -265,7 +266,7 @@ function initTexture() {
 		handleLoadedTexture(webGLTexture6)
 	}
 
-	webGLTexture6.image.src = "test3.png";
+	webGLTexture6.image.src = "test3.png";*/
 }
 
 //----------------------------------------------------------------------------
@@ -335,13 +336,13 @@ function drawModel( angleXX, angleYY, angleZZ,
 
 	// NEW --- Textures
 	
-	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+	/*gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
     gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, cubeVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, webGLTexture1);
         
-    gl.uniform1i(shaderProgram.samplerUniform, 0);
+    gl.uniform1i(shaderProgram.samplerUniform, 0);*/
     
     // The vertex indices
     
@@ -429,29 +430,7 @@ function drawScene() {
 	           mvMatrix,
 	           primitiveType );
 	           	       
-	// Instance 2 --- LEFT TOP
-	
-	drawModel( -angleXX, -angleYY, -angleZZ,  // CW rotations
-	           sx, sy, sz,
-	           tx - 0.5, ty + 0.5, tz,
-	           mvMatrix,
-	           primitiveType );
-	           
-	// Instance 3 --- LEFT BOTTOM
-	
-	drawModel( angleXX, angleYY, -angleZZ, 
-	           sx, sy, sz,
-	           tx + 0.5, ty - 0.5, tz,
-	           mvMatrix,
-	           primitiveType );
-	           	       
-	// Instance 4 --- RIGHT BOTTOM
-	
-	drawModel( angleXX, -angleYY, angleZZ,  // CW rotations
-	           sx, sy, sz,
-	           tx - 0.5, ty - 0.5, tz,
-	           mvMatrix,
-	           primitiveType );
+
 	           
 }
 
@@ -675,26 +654,6 @@ function setEventListeners( canvas ){
 	document.onkeydown = handleKeyDown;
     
     document.onkeyup = handleKeyUp;
-	
-	// Dropdown list
-	
-	var projection = document.getElementById("projection-selection");
-	
-	projection.addEventListener("click", function(){
-				
-		// Getting the selection
-		
-		var p = projection.selectedIndex;
-				
-		switch(p){
-			
-			case 0 : projectionType = 0;
-				break;
-			
-			case 1 : projectionType = 1;
-				break;
-		}  	
-	});      
 
 
 	// Button events
