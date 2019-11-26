@@ -17,61 +17,45 @@
 //
 
 var gl = null; // WebGL context
-
 var shaderProgram = null; 
 
-// NEW --- Buffers
+//  Buffers
 
-var cubeVertexPositionBuffer = null;
-
-var cubeVertexIndexBuffer = null;
-
-var cubeVertexTextureCoordBuffer;
+var circleVertexPositionBuffer = null;
+var circleVertexNormalBuffer = null;
+var circleVertexIndexBuffer = null;
+var circleVertexTextureCoordBuffer = null;
 
 // The global transformation parameters
 
 // The translation vector
 
 var tx = 0.0;
-
 var ty = 0.0;
-
 var tz = 0.0;
 
 // The rotation angles in degrees
 
 var angleXX = 0.0;
-
 var angleYY = 0.0;
-
 var angleZZ = 0.0;
 
 // The scaling factors
 
 var sx = 0.25;
-
 var sy = 0.25;
-
 var sz = 0.25;
 
-// NEW - Animation controls
+// Animation controls
 
 var rotationXX_ON = 1;
-
 var rotationXX_DIR = 1;
-
 var rotationXX_SPEED = 1;
- 
 var rotationYY_ON = 1;
-
 var rotationYY_DIR = 1;
-
 var rotationYY_SPEED = 1;
- 
 var rotationZZ_ON = 1;
-
 var rotationZZ_DIR = 1;
-
 var rotationZZ_SPEED = 1;
  
 // To allow choosing the way of drawing the model triangles
@@ -81,11 +65,15 @@ var primitiveType = null;
 // To allow choosing the projection type
 
 var projectionType = 0;
+
+var speedup = [];
+var slowdown = [];
+var gravity = -0.01;
  
 // From learningwebgl.com
 
 
-// NEW --- Storing the vertices defining the cube faces
+// Storing the vertices defining the cube faces
 
 vertices = [
             // Front face
@@ -375,55 +363,27 @@ function drawModel( angleXX, angleYY, angleZZ,
 function drawScene() {
 	
 	var pMatrix;
-	
 	var mvMatrix = mat4();
 	
-	// Clearing with the background color
-	
 	gl.clear(gl.COLOR_BUFFER_BIT);
-	
-	// NEW --- Computing the Projection Matrix
-	
+
 	if( projectionType == 0 ) {
-		
-		// For now, the default orthogonal view volume
 		
 		pMatrix = ortho( -1.0, 1.0, -1.0, 1.0, -1.0, 1.0 );
 		
 		tz = 0;
-		
-		// TO BE DONE !
-		
-		// Allow the user to control the size of the view volume
 	}
-	else {	
-
-		// A standard view volume.
-		
-		// Viewer is at (0,0,0)
-		
-		// Ensure that the model is "inside" the view volume
-		
+	else {
 		pMatrix = perspective( 45, 1, 0.05, 10 );
 		
 		tz = -2.25;
 
 	}
 	
-	// Passing the Projection Matrix to apply the current projection
-	
 	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
 	
 	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
-	
-	// NEW --- Instantianting the same model more than once !!
-	
-	// And with diferent transformation parameters !!
-	
-	// Call the drawModel function !!
-	
-	// Instance 1 --- RIGHT TOP
-	
+
 	drawModel( -angleXX, angleYY, angleZZ, 
 	           sx, sy, sz,
 	           tx + 0.5, ty + 0.5, tz,
@@ -832,7 +792,7 @@ function initWebGL( canvas ) {
 		
 		// DEFAULT: The viewport background color is WHITE
 		
-		// NEW - Drawing the triangles defining the model
+		// Drawing the triangles defining the model
 		
 		primitiveType = gl.TRIANGLES;
 		
@@ -854,20 +814,12 @@ function initWebGL( canvas ) {
 function runWebGL() {
 	
 	var canvas = document.getElementById("my-canvas");
-	
 	initWebGL( canvas );
-
 	shaderProgram = initShaders( gl );
-	
 	setEventListeners( canvas );
-	
 	initBuffers();
-	
 	initTexture();
-	
-	tick();		// A timer controls the rendering / animation    
-
-	outputInfos();
+	tick();		// A timer controls the rendering / animation
 }
 
 
