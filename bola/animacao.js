@@ -4,8 +4,8 @@ var context = canvas.getContext('2d');
 
 // physical variables
 var g = 0.1; // gravity
-var fac = 0.8; // velocity reduction factor per bounce
-var radius = 20; // ball radius
+var fac = 1; // velocity reduction factor per bounce
+var radius = 25; // ball radius
 var color = "#0000ff"; // ball color
 
 // initialise position and velocity of ball
