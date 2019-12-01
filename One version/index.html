@@ -265,33 +265,54 @@ The fragment shader is the same simple one.
 	position:relative;
 	top:1px;
 }
-		Select#projection-selection{
-			font-size:15px;
-			font-family:Arial;
-			font-weight:bold;
-		}
-		p{
-			font-size:15px;
-			font-family:Arial;
-			font-weight:bold;
-		}
+	Select#projection-selection{
+		font-size:15px;
+		font-family:Arial;
+		font-weight:bold;
+	}
+	p{
+		font-size:15px;
+		font-family:Arial;
+		font-weight:bold;
+	}
+
+		.split{
+		height: 100%;
+		width: 50%;
+		position: fixed;
+		z-index: 1;
+		top: 0;
+		overflow-x: hidden;
+		padding-top: 20px;
+	}
+
+	.left{
+		left:150px;
+		position: absolute;
+		top: 25%;
+	}
+
+	.right{
+		right:0;
+	}
+
 	</style>
 
 </head>
 
-<body onload="runWebGL();">
+<body style="background-color:lightgrey" onload="runWebGL();">
 
 	<div style="text-align: center">
-		
-		<p>Just a test. Some functions will not be used</p>
+		<div class="split right">
+		<p>Bouncing Balls Animation</p>
 		
 		<canvas id="my-canvas" style="border:1px solid #000000;" width="600" height="600"></canvas>
 
 		<!-- NEW --- To show the number of frames per second -->
 		
 		<p id="fps"> fps: </p>
-		
-		
+		</div>
+		<div class="split: left">
 		<p>Press any mouse button and move the cursor to move room around</p>
 
 		</p>
@@ -323,9 +344,8 @@ The fragment shader is the same simple one.
 
 		<button id="reset-button">Reset</button>
 		
+		</div>
 
-        
-		
         				
 	</div>
 
