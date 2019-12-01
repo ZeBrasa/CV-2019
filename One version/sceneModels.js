@@ -48,11 +48,11 @@ function emptyModelFeatures() {
 	
 	// Animation controls
 	
-	this.rotXXOn = true;
+	this.rotXXOn = false;
 	
-	this.rotYYOn = true;
+	this.rotYYOn = false;
 	
-	this.rotZZOn = true;
+	this.rotZZOn = false;
 	
 	this.rotXXSpeed = 1.0;
 	
@@ -222,64 +222,131 @@ function sphereModel( subdivisionDepth = 5 ) {
 	return sphere;
 }
 
+// Turns out this makes an egg
+function CilinderModel( subdivisionDepth = 5,aux ) {
+	
+	//var cilinder = new simpleCubeModel();
+	
+	midPointRefinement( aux.vertices, subdivisionDepth );
+	
+	moveToSphericalSurface( aux.vertices )
+	
+	computeVertexNormals( aux.vertices, aux.normals );
+
+	return aux;
+}
+
+
+
+function piramidModel(){
+	var pira = new emptyModelFeatures();
+
+	var h = Math.sqrt(2) / 2;
+	pira.vertices = [
+	// Bottom
+	-h, -h, h, // left bottom front
+	0.0, -h, -h, // center bottom back
+	h, -h, h, // right bottom front
+
+	// front
+	-h, -h, h, // left bottom front
+	h, -h, h, // right bottom front
+	0.0, h, 0.0, // center top center
+
+	// right
+	h, -h, h, // right bottom front
+	0.0, -h, -h, // center bottom back
+	0.0, h, 0.0, // center top center
+
+	// left
+	-h, -h, h, // left bottom front
+	0.0, h, 0.0, // center top center
+	0.0, -h, -h // center bottom back
+	];
+
+	computeVertexNormals(pira.vertices,pira.normals);
+	return pira;
+
+}
+function coneModel(){
+	var cone = new emptyModelFeatures();
+	cone.vertices =[
+	1.5, 0, 0, 
+	-1.5, 1, 0, 
+	-1.5, 0.809017,	0.587785,
+	-1.5, 0.309017,	0.951057, 
+	-1.5, -0.309017, 0.951057, 
+	-1.5, -0.809017, 0.587785,
+	-1.5, -1, 0, 
+	-1.5, -0.809017, -0.587785,
+	-1.5, -0.309017, -0.951057, 
+	-1.5, 0.309017,	-0.951057, 
+	-1.5, 0.809017,	-0.587785];
+	
+	computeVertexNormals(cone.vertices,cone.normals);
+	return cone;
+}
+
+
+
 
 //----------------------------------------------------------------------------
 //
 //  Instantiating scene models
 //
 
+// I identify as a room
 var sceneModels = [];
-/*
-// Model 0 --- Top Left
+sceneModels.push( new cubeModel() );
 
-sceneModels.push( new singleTriangleModel() );
+sceneModels[0].tx = 0; sceneModels[0].ty = 0;sceneModels[0].tz = -1.6;
+sceneModels[0].sx = 2.5; 
+sceneModels[0].sy = 1.6
+sceneModels[0].sz = 10;
 
-sceneModels[0].tx = -0.5; sceneModels[0].ty = 0.5;
+// Center sphere
+sceneModels.push( new sphereModel( 5 ) );
 
-sceneModels[0].sx = sceneModels[0].sy = sceneModels[0].sz = 0.5;
+sceneModels[1].sx = 0.25; sceneModels[1].sy = 0.25; sceneModels[1].sz = 0.25;
+sceneModels[1].tx = 0; sceneModels[1].ty = 0;sceneModels[1].tz = 0;
 
-// Model 1 --- Top Right
+// Side spheres
+sceneModels.push( new sphereModel( 5 ) );
 
-sceneModels.push( new simpleCubeModel() );
+sceneModels[2].tx = 0.5; sceneModels[2].ty = 0;sceneModels[2].tz = 0;
+sceneModels[2].sx = sceneModels[2].sy = sceneModels[2].sz = 0.15;
 
-sceneModels[1].tx = 0.5; sceneModels[1].ty = 0.5;
-
-sceneModels[1].sx = sceneModels[1].sy = sceneModels[1].sz = 0.25;
-
-// Model 2 --- Bottom Right
-
-sceneModels.push( new tetrahedronModel( 1 ) );
-
-sceneModels[2].tx = 0.5; sceneModels[2].ty = -0.5;
-
-sceneModels[2].sx = sceneModels[2].sy = sceneModels[2].sz = 0.25;
-
-// Model 3 --- Bottom Left
-
-sceneModels.push( new cubeModel( 1 ) );
-
-sceneModels[3].tx = -0.5; sceneModels[3].ty = -0.5;
-
-sceneModels[3].sx = 0.4; sceneModels[3].sy = sceneModels[3].sz = 0.25;
-
-// Model 4 --- Middle
-
-sceneModels.push( new simpleCubeModel() );
-
-sceneModels[4].sx = 0.1; sceneModels[4].sy = 0.75; sceneModels[4].sz = 0.1;
-*/
-// Model 5 --- Middle
 
 sceneModels.push( new sphereModel( 5 ) );
 
-sceneModels[0].sx = 0.25; sceneModels[0].sy = 0.25; sceneModels[0].sz = 0.25;
+sceneModels[3].tx = -0.5; sceneModels[3].ty = 0;sceneModels[3].tz = 0;
+sceneModels[3].sx = sceneModels[3].sy = sceneModels[3].sz = 0.15;
 
-sceneModels.push( new simpleCubeModel() );
 
-sceneModels[1].tx = 0.5; sceneModels[1].ty = 0.5;sceneModels[1].tz = 0.5;
+/*
+aux= new simpleCubeModel();
+aux.sx = 0.5;
+aux.sy = 0.5;
+aux.sz = 1;
 
-sceneModels[1].sx = sceneModels[1].sy = sceneModels[1].sz = 0.15;
+sceneModels.push(new CilinderModel(4,aux));
+sceneModels[4].tx = -0.5; sceneModels[4].ty = -1;sceneModels[4].tz = -2.5;
 
-sceneModels.push( new simpleCubeModel() );
+sceneModels.push( new sphereModel( 3 ) );
 
- sceneModels[2].sx = sceneModels[2].sy = sceneModels[2].sz = 0.1;
+sceneModels[4].tx = 0.5; sceneModels[4].ty = -1;sceneModels[4].tz = 0;
+sceneModels[4].sx = sceneModels[4].sy = sceneModels[4].sz = 0.15;
+
+sceneModels.push( new sphereModel( 5 ) );
+
+sceneModels[5].tx = -0.5; sceneModels[5].ty = -1;sceneModels[5].tz = 0;
+sceneModels[5].sx = sceneModels[5].sy = sceneModels[5].sz = 0.15;
+
+sceneModels.push( new sphereModel(1) );
+
+sceneModels[6].tx = -0.5; sceneModels[6].ty = 0;sceneModels[6].tz = -5;
+sceneModels[6].sx = sceneModels[6].sy = sceneModels[6].sz = 0.15;
+*/
+	
+
+

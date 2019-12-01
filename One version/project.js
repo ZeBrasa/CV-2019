@@ -26,21 +26,38 @@ var triangleVertexNormalBuffer = null;
 
 // The GLOBAL transformation parameters
 
+var globalAngleXX = 0.0;
 var globalAngleYY = 0.0;
-
+var globalAngleZZ = 0.0;
 var globalTz = 0.0;
 
 // GLOBAL Animation controls
 
+var globalRotationXX_ON = 0;
+var globalRotationXX_DIR = 1;
+var globalRotationXX_SPEED = 1;
+
 var globalRotationYY_ON = 0;
-
 var globalRotationYY_DIR = 1;
-
 var globalRotationYY_SPEED = 1;
 
-sceneModels[2].rotXXOn = 0;
-sceneModels[2].rotYYOn = 0;
-sceneModels[2].rotZZOn = 0;
+var globalRotationZZ_ON = 0;
+var globalRotationZZ_DIR = 1;
+var globalRotationZZ_SPEED = 1;
+
+// Added stuff
+
+
+lightSources[1].isOn = false;
+lightSources[2].isOn = false;
+
+
+
+
+// Texture buffers
+
+
+var triangleVertexTextureCoordBuffer;
 
 
 // To allow choosing the way of drawing the model triangles
@@ -49,11 +66,7 @@ var primitiveType = null;
  
 // To allow choosing the projection type
 
-var projectionType = 0;
-
-// NEW --- The viewer position
-
-// It has to be updated according to the projection type
+var projectionType = 1;
 
 var pos_Viewer = [ 0.0, 0.0, 0.0, 1.0 ];
 
@@ -236,75 +249,12 @@ function drawModel( model,
 }
 
 //----------------------------------------------------------------------------
-/*
-
-const settings = {
-    cameraX: 2.75,
-    cameraY: 5,
-    posX: 2.5,
-    posY: 4.8,
-    posZ: 4.3,
-    targetX: 2.5,
-    targetY: 0,
-    targetZ: 3.5,
-    projWidth: 1,
-    projHeight: 1,
-    perspective: true,
-    fieldOfView: 45,
-  };
-
-*/
 
 
 //  Drawing the 3D scene
 
 function drawScene() {
-	/*
-	// Make a view matrix from the camera matrix.
-	const viewMatrix = maths.m4.inverse(cameraMatrix);
-	
-	const textureWorldMatrix = maths.m4.lookAt(
-        [settings.posX, settings.posY, settings.posZ],          // position
-        [settings.targetX, settings.targetY, settings.targetZ], // target
-        [0, 1, 0],                                              // up
-	);
 
-	const textureProjectionMatrix = settings.perspective
-        ? maths.m4.perspective(
-            degToRad(settings.fieldOfView),
-            settings.projWidth / settings.projHeight,
-            0.1,  // near
-            200)  // far
-        : m4.orthographic(
-            -settings.projWidth / 2,   // left
-             settings.projWidth / 2,   // right
-            -settings.projHeight / 2,  // bottom
-             settings.projHeight / 2,  // top
-             0.1,                      // near
-             200);                     // far
-
-			 let textureMatrix = maths.m4.identity();
-			 textureMatrix = maths.m4.translate(textureMatrix, 0.5, 0.5, 0.5);
-			 textureMatrix = maths.m4.scale(textureMatrix, 0.5, 0.5, 0.5);
-			 textureMatrix = maths.m4.multiply(textureMatrix, textureProjectionMatrix);
-			 // use the inverse of this world matrix to make
-			 // a matrix that will transform other positions
-			 // to be relative this this world space.
-			 textureMatrix = m4.multiply(
-				 textureMatrix,
-				 m4.inverse(textureWorldMatrix));
-		 
-			 gl.useProgram(textureProgramInfo.program);
-		 
-			 // set uniforms that are the same for both the sphere and plane
-			 webglUtils.setUniforms(textureProgramInfo, {
-			   u_view: viewMatrix,
-			   u_projection: projectionMatrix,
-			   u_textureMatrix: textureMatrix,
-			   u_projectedTexture: imageTexture,
-			 });
-	
-	*/
 	
 	var pMatrix;
 	
@@ -367,14 +317,23 @@ function drawScene() {
 	
 	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
 	
-	// NEW --- Passing the viewer position to the vertex shader
+
+	//  Passing the viewer position to the vertex shader
 	
 	gl.uniform4fv( gl.getUniformLocation(shaderProgram, "viewerPosition"),
         flatten(pos_Viewer) );
 	
 	// GLOBAL TRANSFORMATION FOR THE WHOLE SCENE
+
+	// For XX not complete yet
+	mvMatrix = mult(translationMatrix( 1, 0, 0), rotationXXMatrix( globalAngleXX ));
 	
-	mvMatrix = translationMatrix( 0, 0, globalTz );
+	// For ZZ
+	mvMatrix = mult( translationMatrix( 0, 0, globalTz ),
+					  rotationZZMatrix( globalAngleZZ ));
+		
+	// For YY				  
+	mvMatrix = mult(mvMatrix, rotationYYMatrix( globalAngleYY ));
 	
 	// NEW - Updating the position of the light sources, if required
 	
@@ -388,17 +347,35 @@ function drawScene() {
 
 		if( !lightSources[i].isOff() ) {
 				
-			// COMPLETE THE CODE FOR THE OTHER ROTATION AXES
-
 			if( lightSources[i].isRotYYOn() ) 
 			{
 				lightSourceMatrix = mult( 
 						lightSourceMatrix, 
 						rotationYYMatrix( lightSources[i].getRotAngleYY() ) );
 			}
+
+			//ZZ 
+			if( lightSources[i].isRotXXOn() ) 
+			{
+				lightSourceMatrix = mult( 
+						lightSourceMatrix, 
+						rotationXXMatrix( lightSources[i].getRotAngleXX() ) );
+
+			}
+			//XX
+			if( lightSources[i].isRotZZOn() ) 
+			{
+				lightSourceMatrix = mult( 
+						lightSourceMatrix, 
+						rotationZZMatrix( lightSources[i].getRotAngleZZ() ) );
+
+			}
+
+
+
 		}
 		
-		// NEW Passing the Light Souree Matrix to apply
+		//  Passing the Light Source Matrix to apply
 	
 		var lsmUniform = gl.getUniformLocation(shaderProgram, "allLights["+ String(i) + "].lightSourceMatrix");
 	
@@ -421,7 +398,6 @@ function drawScene() {
 
 //----------------------------------------------------------------------------
 //
-//  NEW --- Animation
 //
 
 // Animation --- Updating transformation parameters
@@ -437,19 +413,27 @@ function animate() {
 		var elapsed = timeNow - lastTime;
 		
 		// Global rotation
+
+		if( globalRotationXX_ON ) {
+			globalAngleXX += globalRotationXX_DIR * globalRotationXX_SPEED * (90 * elapsed) / 1000.0;
+		}
 		
 		if( globalRotationYY_ON ) {
 
 			globalAngleYY += globalRotationYY_DIR * globalRotationYY_SPEED * (90 * elapsed) / 1000.0;
-	    }
+		}
+		if( globalRotationZZ_ON ) {
+			globalAngleZZ += globalRotationZZ_DIR * globalRotationZZ_SPEED * (90 * elapsed) / 1000.0;
+		}
+		
 
-		// For every model --- Local rotations
+		// For every model --- Local rotations not use here
 		
 		for(var i = 0; i < sceneModels.length; i++ )
 	    {
-			if( sceneModels[i].rotXXOn ) {
+			if( sceneModels[2].rotXXOn ) {
 
-				sceneModels[i].rotAngleXX += sceneModels[i].rotXXDir * sceneModels[i].rotXXSpeed * (90 * elapsed) / 1000.0;
+				sceneModels[2].rotAngleXX += sceneModels[2].rotXXDir * sceneModels[2].rotXXSpeed * (90 * elapsed) / 1000.0;
 			}
 
 			if( sceneModels[i].rotYYOn ) {
@@ -472,22 +456,48 @@ function animate() {
 				if (!start) { start = auxtime };
 				time = auxtime - start;
 				ypos = a * Math.pow(((auxtime + h) % (h * 2) - h), 2) + k/2;
-				sceneModels[0].ty = ypos;
-				//console.log(auxtime);
-				//window.requestAnimationFrame(drawPosition);
-			})(performance.now());
-		
-		// Rotating the light sources
-	
-		for(var i = 0; i < lightSources.length; i++ )
-	    {
-			if( lightSources[i].isRotYYOn() ) {
+				y1pos = a * Math.pow(((timeNow + h) % (h * 2) - h), 2) + k/2;
+				sceneModels[1].ty = ypos;
+				sceneModels[2].ty = y1pos;
+				sceneModels[3].ty = y1pos;
+				/*
+				sceneModels[4].ty = y1pos;
+				sceneModels[5].ty = y1pos;
+				*/
+				for (var i=4; i<sceneModels.length;i++){
+					sceneModels[i].ty = y1pos;
+					
 
-				var angle = lightSources[i].getRotAngleYY() + lightSources[i].getRotationSpeed() * (90 * elapsed) / 1000.0;
-		
-				lightSources[i].setRotAngleYY( angle );
 			}
+			//console.log(auxtime);
+			//window.requestAnimationFrame(drawPosition);
+			})(performance.now());
+			
+		
+		// I Am the sun 
+		// Maybe if the angle was from x to y, 
+		// I could put lights rotating from sun to lamp
+		// Maybe with time??
+		// Will try to find another way later
+		if( lightSources[1].isRotYYOn() ) {
+			var angle = lightSources[1].getRotAngleYY() + lightSources[1].getRotationSpeed() * (90 * elapsed) / 1000.0;
+			lightSources[1].setRotAngleYY( angle );
+			//console.log(angle);
 		}
+		if( lightSources[2].isRotXXOn() ) {
+			var angle = lightSources[2].getRotAngleXX() + lightSources[2].getRotationSpeed() * (-90 * elapsed) / 1000.0;
+			lightSources[2].setRotAngleXX( angle );
+
+
+		}
+		if( lightSources[3].isRotZZOn() ) {
+			var angle = lightSources[3].getRotAngleZZ() + lightSources[3].getRotationSpeed() * (45 * elapsed) / 1000.0;
+			lightSources[3].setRotAngleZZ( angle );
+
+		}
+
+
+
 }
 	
 	lastTime = timeNow;
@@ -502,6 +512,8 @@ function tick() {
 	
 	requestAnimFrame(tick);
 	
+	handleKeys();
+
 	drawScene();
 	
 	animate();
@@ -519,31 +531,187 @@ function outputInfos(){
 
 //----------------------------------------------------------------------------
 
-function setEventListeners(){
+
+// Handling keyboard events
+
+// Adapted from www.learningwebgl.com
+
+var currentlyPressedKeys = {};
+
+var r = 0.5;
+var theta = 0;
+var dTheta = 2 * Math.PI / 100;
+
+
+function handleKeys() {
 	
-    // Dropdown list
-	
-	var projection = document.getElementById("projection-selection");
-	
-	projection.addEventListener("click", function(){
-				
-		// Getting the selection
+	if (currentlyPressedKeys[37]) {
 		
-		var p = projection.selectedIndex;
-				
-		switch(p){
+		// Left Button
+		/*
+			// Originx,originy = center of circule
+			// radius = rotation radius
+			X = originX + cos(angle)*radius;
+			Y = originY + sin(angle)*radius;
+			center = 0;
+		*/
+		//console.log(sceneModels[3].tz);
+		//console.log(sceneModels[3].tx);
+		theta += dTheta;
+		sceneModels[2].tx = -r * Math.cos(theta);
+		sceneModels[2].tz = -r * Math.sin(theta);
+		sceneModels[3].tx = r * Math.cos(theta);
+		sceneModels[3].tz = r * Math.sin(theta);
+
+		
+	}
+	if (currentlyPressedKeys[39]) {
+
+		// Right arrow
+		theta += dTheta;
+		sceneModels[2].tx = -r * Math.cos(-theta);
+		sceneModels[2].tz = -r * Math.sin(-theta);
+		sceneModels[3].tx = r * Math.cos(-theta);
+		sceneModels[3].tz = r * Math.sin(-theta);	
+		
+	} 
+	if (currentlyPressedKeys[38]) {
+		// Zoom in
+		// Up arrow
+		// For putting room closer
+		// reach max zoom in
+		//console.log(sceneModels[1].sx);
+		if(sceneModels[0].sz>3){
+			var auxRoomz = sceneModels[0].sz* 0.9;
+			sceneModels[0].sz=auxRoomz;	
+			if(sceneModels[1].sx<0.3){
+				for(var i=1; i<sceneModels.length;i++){
+					var auxRest = sceneModels[i].sx*1.1;
+					sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = auxRest;
+				}		
+			}
 			
-			case 0 : projectionType = 0;
-				break;
+
+		}
+		
+
+		
+	}
+	if (currentlyPressedKeys[40]) {
+		
+		// Page Down
+		// reach max zoom out
+		//console.log(sceneModels[0].sz);
+		if(sceneModels[0].sz<20){
+			var auxRoomz = sceneModels[0].sz* 1.1;
+			sceneModels[0].sz=auxRoomz;
+			if(sceneModels[1].sz>0.2){
+				for(var i=1; i<sceneModels.length;i++){
+					var auxRest = sceneModels[i].sx*0.9;
+					sceneModels[i].sx = sceneModels[i].sy = sceneModels[i].sz = auxRest;
+				}
+			}
 			
-			case 1 : projectionType = 1;
-				break;
-		}  	
-	});      
+
+		}
+
+		//sx *= 1.1;
+		
+		//sz = sy = sx;
+	}
+
+}
+// Adapted from www.learningwebgl.com
+
+
+var mouseDown = false;
+
+var lastMouseX = null;
+
+var lastMouseY = null;
+
+function handleMouseDown(event) {
+	
+    mouseDown = true;
+  
+    lastMouseX = event.clientX;
+  
+    lastMouseY = event.clientY;
+}
+
+function handleMouseUp(event) {
+
+    mouseDown = false;
+}
+
+function handleMouseMove(event) {
+
+    if (!mouseDown) {
+	  
+      return;
+    } 
+  
+    // Rotation angles proportional to cursor displacement
+    
+    var newX = event.clientX;
+  
+	var newY = event.clientY;
+	//console.log(newX);
+
+    var deltaX = newX - lastMouseX;
+    
+	sceneModels[0].rotAngleYY += radians( 10 * deltaX  );
+	sceneModels[2].rotAngleYY += radians( 10 * deltaX  );
+	sceneModels[3].rotAngleYY += radians( 10 * deltaX  );
+	
+
+    var deltaY = newY - lastMouseY;
+    
+	sceneModels[0].rotAngleXX += radians( 10 * deltaY  );
+	sceneModels[2].rotAngleXX += radians( 10 * deltaY  );
+	sceneModels[3].rotAngleXX += radians( 10 * deltaY  );
+    
+    lastMouseX = newX
+    
+    lastMouseY = newY;
+  }
+
+
+function setEventListeners(canvas){
+
+	// Handling the mouse
+	
+	// From learningwebgl.com
+
+	canvas.onmousedown = handleMouseDown;
+    
+    document.onmouseup = handleMouseUp;
+    
+    document.onmousemove = handleMouseMove;
+    
+    // Handling the keyboard
+	
+	// From learningwebgl.com
+
+    function handleKeyDown(event) {
+		
+        currentlyPressedKeys[event.keyCode] = true;
+    }
+
+    function handleKeyUp(event) {
+		
+        currentlyPressedKeys[event.keyCode] = false;
+    }
+
+	document.onkeydown = handleKeyDown;
+    
+	document.onkeyup = handleKeyUp;
+	
+	    
       
 
 	// Button events
-	
+	/*
 	document.getElementById("XX-on-off-button").onclick = function(){
 		
 		// Switching on / off
@@ -580,137 +748,254 @@ function setEventListeners(){
 		}
 	};      
 
-	document.getElementById("XX-slower-button").onclick = function(){
-		
-		// For every model
-		
-		for(var i = 0; i < sceneModels.length; i++ )
-	    {
-			sceneModels[i].rotXXSpeed *= 0.75; 
-		}
-	};      
 
-	document.getElementById("XX-faster-button").onclick = function(){
-		
-		// For every model
-		
-		for(var i = 0; i < sceneModels.length; i++ )
-	    {
-			sceneModels[i].rotXXSpeed *= 1.25; 
-		}
-	};      
-
-	document.getElementById("YY-on-off-button").onclick = function(){
+	document.getElementById("XXglobal-on-off-button").onclick = function(){
 		
 		// Switching on / off
 		
-		// For every model
-		
-		for(var i = 0; i < sceneModels.length; i++ )
-	    {
-			if( sceneModels[i].rotYYOn ) {
-
-				sceneModels[i].rotYYOn = false;
-			}
-			else {
-				sceneModels[i].rotYYOn = true;
-			}	
+		if( globalRotationXX_ON ) {
+			
+			globalRotationXX_ON = 0;
 		}
+		else {
+			
+			globalRotationXX_ON = 1;
+		}  
 	};
 
-	document.getElementById("YY-direction-button").onclick = function(){
+	document.getElementById("XXglobal-direction-button").onclick = function(){
 		
 		// Switching the direction
 		
-		// For every model
-		
-		for(var i = 0; i < sceneModels.length; i++ )
-	    {
-			if( sceneModels[i].rotYYDir == 1 ) {
-
-				sceneModels[i].rotYYDir = -1;
-			}
-			else {
-				sceneModels[i].rotYYDir = 1;
-			}	
+		if( globalRotationXX_DIR == 1 ) {
+			
+			globalRotationXX_DIR = -1;
 		}
-	};      
-
-	document.getElementById("YY-slower-button").onclick = function(){
-
-		// For every model
-		
-		for(var i = 0; i < sceneModels.length; i++ )
-	    {
-			sceneModels[i].rotYYSpeed *= 0.75; 
-		}
-	};      
-
-	document.getElementById("YY-faster-button").onclick = function(){
-		
-		// For every model
-		
-		for(var i = 0; i < sceneModels.length; i++ )
-	    {
-			sceneModels[i].rotYYSpeed *= 1.25; 
-		}
-	};      
-
-	document.getElementById("ZZ-on-off-button").onclick = function(){
+		else {
+			
+			globalRotationXX_DIR = 1;
+		}  
+	};
+	*/
+	document.getElementById("YYglobal-on-off-button").onclick = function(){
 		
 		// Switching on / off
 		
-		// For every model
-		
-		for(var i = 0; i < sceneModels.length; i++ )
-	    {
-			if( sceneModels[i].rotZZOn ) {
-
-				sceneModels[i].rotZZOn = false;
-			}
-			else {
-				sceneModels[i].rotZZOn = true;
-			}	
+		if( globalRotationYY_ON ) {
+			
+			globalRotationYY_ON = 0;
 		}
+		else {
+			
+			globalRotationYY_ON = 1;
+		}  
 	};
 
-	document.getElementById("ZZ-direction-button").onclick = function(){
+	document.getElementById("YYglobal-direction-button").onclick = function(){
 		
 		// Switching the direction
 		
-		// For every model
+		if( globalRotationYY_DIR == 1 ) {
+			
+			globalRotationYY_DIR = -1;
+		}
+		else {
+			
+			globalRotationYY_DIR = 1;
+		}  
+	};
+	document.getElementById("ZZglobal-on-off-button").onclick = function(){
 		
+		// Switching on / off
+		
+		if( globalRotationZZ_ON ) {
+			
+			globalRotationZZ_ON = 0;
+		}
+		else {
+			
+			globalRotationZZ_ON = 1;
+		}  
+	};
+
+	document.getElementById("ZZglobal-direction-button").onclick = function(){
+		
+		// Switching the direction
+		
+		if( globalRotationZZ_DIR == 1 ) {
+			
+			globalRotationZZ_DIR = -1;
+		}
+		else {
+			
+			globalRotationZZ_DIR = 1;
+		}  
+	};
+
+	document.getElementById("Green-light-off").onclick = function(){
+		
+		// Switching on / off
+		
+		if( lightSources[3].isOn == true ) {
+			
+			lightSources[3].isOn = false;
+		}
+		else {
+			
+			lightSources[3].isOn = true;
+		}  
+	};
+	document.getElementById("Red-light-off").onclick = function(){
+		
+		// Switching on / off
+		
+		if( lightSources[2].isOn == true ) {
+			
+			lightSources[2].isOn = false;
+		}
+		else {
+			
+			lightSources[2].isOn = true;
+		}    
+	};
+	document.getElementById("Yellow-light-off").onclick = function(){
+		
+		if( lightSources[1].isOn == true ) {
+			
+			lightSources[1].isOn = false;
+		}
+		else {
+			
+			lightSources[1].isOn = true;
+		}  
+	};
+	
+
+
+
+	var aux = 1
+	var tempz = -1;
+	var tempx1 = 0.5;
+	var tempx2 = -0.5;
+
+	document.getElementById("Add-ball-back").onclick = function(){
+		
+		sceneModels.push(new sphereModel(aux));
+		sceneModels.push(new sphereModel(aux));
+		if(aux<5){
+			aux+=aux;
+		}
+		
+		var size = sceneModels.length;
+		sceneModels[size-1].tx = tempx1 + 0.1; 
+		sceneModels[size-2].tx = tempx2 - 0.1;
+
+		sceneModels[size-1].ty = sceneModels[size-2].ty = -1;
+
+		sceneModels[size-1].tz = sceneModels[size-2].tz = tempz - 0.5;
+
+		sceneModels[size-1].sx = sceneModels[size-1].sy  = sceneModels[size-1].sz  = 0.15;
+		sceneModels[size-2].sx = sceneModels[size-2].sy  = sceneModels[size-2].sz  = 0.15;
+		tempz = sceneModels[size-1].tz;
+		tempx1 = sceneModels[size-1].tx;
+		tempx2 = sceneModels[size-2].tx;
+		
+	
+
+	};  
+	/*
+	var auxRandom;
+	document.getElementById("Add-Random").onclick = function(){
+		
+		auxRandom = getRndInteger();
+		if(auxRandom = 0){
+			sceneModels.push(new sphereModel(aux));
+			sceneModels.push(new sphereModel(aux));
+			aux+=aux;
+		}
+		else if(auxRandom =1){
+			sceneModels.push(new tetrahedronModel(1));
+			sceneModels.push(new tetrahedronModel(1));
+
+		}
+		else if(auxRandom =2){
+			sceneModels.push(new cubeModel());
+			sceneModels.push(new cubeModel());
+		}
+		else{
+			sceneModels.push(new piramidModel());
+			sceneModels.push(new piramidModel());
+
+		}
+		console.log(auxRandom);
+		var size = sceneModels.length;
+		sceneModels[size-1].tx = 0.5; 
+		sceneModels[size-2].tx = -0.5;
+
+		sceneModels[size-1].ty = sceneModels[size-2].ty = -1;
+
+		sceneModels[size-1].tz = sceneModels[size-2].tz = sceneModels[size-3].tz - 0.5;
+
+		sceneModels[size-1].sx = sceneModels[size-1].sy  = sceneModels[size-1].sz  = 0.15;
+		sceneModels[size-2].sx = sceneModels[size-2].sy  = sceneModels[size-2].sz  = 0.15;
+		wasRandom=0;
+		wasRandom=1;
+
+	}; 
+	*/
+
+
+
+	document.getElementById("reset-button").onclick = function(){
+		
+		// The initial values
+		for(var i = 0;i < sceneModels.length;i++){
+			sceneModels[i].rotAngleXX=0;
+			sceneModels[i].rotAngleYY=0;
+			sceneModels[i].rotAngleZZ=0;
+		}
 		for(var i = 0; i < sceneModels.length; i++ )
 	    {
-			if( sceneModels[i].rotZZDir == 1 ) {
-
-				sceneModels[i].rotZZDir = -1;
-			}
-			else {
-				sceneModels[i].rotZZDir = 1;
-			}	
+			sceneModels[i].rotXXOn = false;
+			sceneModels[i].rotYYOn = false;
+			sceneModels[i].rotZZOn = false;
 		}
-	};      
-
-	document.getElementById("ZZ-slower-button").onclick = function(){
-		
-		// For every model
-		
-		for(var i = 0; i < sceneModels.length; i++ )
+		sceneModels[0].sx = 2.5; 
+		sceneModels[0].sy = 1.6
+		sceneModels[0].sz = 10;
+		sceneModels[1].sx = sceneModels[1].sy = sceneModels[1].sz = 0.25;
+		for(var i = 2; i < sceneModels.length; i++ )
 	    {
-			sceneModels[i].rotZZSpeed *= 0.75; 
+			sceneModels[i].sx = 0.15;
+			sceneModels[i].sy = 0.15;
+			sceneModels[i].sz = 0.15;
 		}
-	};      
+					
 
-	document.getElementById("ZZ-faster-button").onclick = function(){
-		
-		// For every model
-		
-		for(var i = 0; i < sceneModels.length; i++ )
-	    {
-			sceneModels[i].rotZZSpeed *= 1.25; 
-		}
-	};      
+
+		globalAngleXX = 0.0;
+		globalAngleYY = 0.0;
+		globalAngleZZ = 0.0;
+
+		globalRotationXX_ON = 0;
+		globalRotationXX_DIR = 1;
+		//globalRotationXX_SPEED = 1;
+
+		globalRotationYY_ON = 0;
+		globalRotationYY_DIR = 1;
+		//globalRotationYY_SPEED = 1;
+
+		globalRotationZZ_ON = 0;
+		globalRotationZZ_DIR = 1;
+		//globalRotationZZ_SPEED = 1;
+
+		lightSources[1].isOn = false;
+		lightSources[2].isOn = false;
+		lightSources[3].isOn = true;
+
+
+	};
+
 }
 
 //----------------------------------------------------------------------------
@@ -727,28 +1012,25 @@ function initWebGL( canvas ) {
 		
 		gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 		
+		// ViewPort new color
 		gl.clearColor(0.9,0.9,0.8,1);
 
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		// DEFAULT: The viewport occupies the whole canvas 
 		
-		// DEFAULT: The viewport background color is WHITE
 		
-		// NEW - Drawing the triangles defining the model
+		// Drawing the triangles defining the model
 		
 		primitiveType = gl.TRIANGLES;
 		
-		// DEFAULT: Face culling is DISABLED
 		
 		// Enable FACE CULLING
 		
 		gl.enable( gl.CULL_FACE );
 		
-		// DEFAULT: The BACK FACE is culled!!
+		// DEFAULT: The Front FACE is culled!!
 		
-		// The next instruction is not needed...
-		
-		gl.cullFace( gl.BACK );
+		gl.cullFace( gl.FRONT );
 		
 		// Enable DEPTH-TEST
 		
@@ -771,12 +1053,17 @@ function runWebGL() {
 	initWebGL( canvas );
 	
 	shaderProgram = initShaders( gl );
-	
-	setEventListeners();
+	//console.log(lightSources[0].getPosition()); 
+
+	setEventListeners(canvas);
 	
 	tick();		// A timer controls the rendering / animation    
 
 	outputInfos();
 }
+
+function getRndInteger() {
+	return Math.floor(Math.random() * (3 - 0 + 1) ) + 0;
+  }
 
 

@@ -119,6 +119,31 @@ LightSource.prototype.setAmbIntensity = function( r, g, b ) {
 	this.ambientIntensity[2] = b;
 }
 
+LightSource.prototype.isRotXXOn = function() {
+	
+	return this.rotXXOn;
+}
+
+LightSource.prototype.switchRotXXOn = function() {
+	
+	this.rotXXOn = true;
+}
+
+LightSource.prototype.switchRotXXOff = function() {
+	
+	this.rotXXOn = false;
+}
+
+LightSource.prototype.getRotAngleXX = function() {
+	
+	return this.rotAngleXX;
+}
+
+LightSource.prototype.setRotAngleXX = function( angle ) {
+	
+	this.rotAngleXX = angle;
+}
+
 LightSource.prototype.isRotYYOn = function() {
 	
 	return this.rotYYOn;
@@ -144,6 +169,32 @@ LightSource.prototype.setRotAngleYY = function( angle ) {
 	this.rotAngleYY = angle;
 }
 
+LightSource.prototype.isRotZZOn = function() {
+	
+	return this.rotZZOn;
+}
+
+LightSource.prototype.switchRotZZOn = function() {
+	
+	this.rotZZOn = true;
+}
+
+LightSource.prototype.switchRotZZOff = function() {
+	
+	this.rotZZOn = false;
+}
+
+LightSource.prototype.getRotAngleZZ = function() {
+	
+	return this.rotAngleZZ;
+}
+
+LightSource.prototype.setRotAngleZZ = function( angle ) {
+	
+	this.rotAngleZZ = angle;
+}
+
+
 LightSource.prototype.getRotationSpeed = function() {
 	
 	return this.rotationSpeed;
@@ -168,11 +219,11 @@ var lightSources = [];
 
 lightSources.push( new LightSource() );
 
-lightSources[0].setPosition( -1.0, 1.0, 1.0, 0.0 );
+lightSources[0].setPosition( 0, 5, -12.5, 0 );
 
-lightSources[0].setIntensity( 1.0, 0.0, 0.0 );
+lightSources[0].setIntensity( 1.0, 1.0, 1.0 );
 
-lightSources[0].setAmbIntensity( 0.2, 0.0, 0.0 );
+lightSources[0].setAmbIntensity(1, 1, 1 );
 
 lightSources[0].switchRotYYOn();
 
@@ -182,13 +233,43 @@ lightSources[0].setRotationSpeed( 1.0 );
 
 lightSources.push( new LightSource() );
 
-lightSources[1].setPosition( 10.0, 10.0, 10.0, 1.0 );
+lightSources[1].setPosition( 0.0, 5, -12.5, 1 );
 
-lightSources[1].setIntensity( 0.0, 0.0, 1.0 );
+lightSources[1].setIntensity( 1.0, 1.0, 0.0 );
 
 lightSources[1].setAmbIntensity( 0.0, 0.0, 0.2 );
 
 lightSources[1].switchRotYYOn();
 
 lightSources[1].setRotationSpeed( -0.5 );
+
+
+// Am another light source
+
+lightSources.push( new LightSource() );
+
+lightSources[2].setPosition( 0, -11, -12.5, 1 );
+
+lightSources[2].setIntensity( 1.0, 0.0, 0.0 );
+
+lightSources[2].setAmbIntensity( 0.0, 0.0, 0.2 );
+
+lightSources[2].switchRotXXOn();
+
+lightSources[2].setRotationSpeed( -0.5 );
+
+// I identify as a Light on the center
+
+lightSources.push( new LightSource() );
+
+lightSources[3].setPosition( 0, -11, -12.5, 1 );
+
+lightSources[3].setIntensity( 0.0, 1.0, 0.0 );
+
+lightSources[3].setAmbIntensity( 0.0, 0.01, 0.0 );
+
+lightSources[3].switchRotZZOn();
+
+lightSources[3].setRotationSpeed( -1 );
+
 

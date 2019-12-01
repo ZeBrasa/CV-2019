@@ -32,7 +32,12 @@ The fragment shader is the same simple one.
 
     uniform mat4 uPMatrix;
     
-    varying vec4 fColor;
+	varying vec4 fColor;
+
+	// Texture
+	attribute vec2 aTextureCoord;
+
+	varying vec2 vTextureCoord;
     
     // For the Phong Illumination Model - NEW
     
@@ -75,6 +80,8 @@ The fragment shader is the same simple one.
 		// To allow seeing the points drawn
 		
 		gl_PointSize = 5.0;
+
+		vTextureCoord = aTextureCoord;
 		
 		// Just converting the (x,y,z) vertices to Homogeneous Coord.
 		
@@ -190,11 +197,15 @@ The fragment shader is the same simple one.
 	
 	varying vec4 fColor;
 	
+	varying vec2 vTextureCoord;
+	uniform sampler2D uSampler;
+
 	void main(void) {
 		
 		// Using the passed vertex color
 		
 		gl_FragColor = fColor;
+		//gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
 	}
 
 </script>
@@ -227,6 +238,45 @@ The fragment shader is the same simple one.
 
 <script type="text/javascript" src="project.js"></script>
 
+<!-- Just so I can look Pretty -->
+
+<style>
+	button {
+	box-shadow:inset 0px 1px 0px 0px #fff6af;
+	background:linear-gradient(to bottom, #ffec64 5%, #ffab23 100%);
+	background-color:#ffec64;
+	border-radius:6px;
+	border:1px solid #ffaa22;
+	display:inline-block;
+	cursor:pointer;
+	color:#333333;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #ffee66;
+}
+	button:hover {
+	background:linear-gradient(to bottom, #ffab23 5%, #ffec64 100%);
+	background-color:#ffab23;
+}
+	button:active {
+	position:relative;
+	top:1px;
+}
+		Select#projection-selection{
+			font-size:15px;
+			font-family:Arial;
+			font-weight:bold;
+		}
+		p{
+			font-size:15px;
+			font-family:Arial;
+			font-weight:bold;
+		}
+	</style>
+
 </head>
 
 <body onload="runWebGL();">
@@ -240,51 +290,40 @@ The fragment shader is the same simple one.
 		<!-- NEW --- To show the number of frames per second -->
 		
 		<p id="fps"> fps: </p>
-
-		<p>XX rotation: 
-			
-		<button id="XX-on-off-button">On / Off</button>
-
-	    <button id="XX-direction-button">Change Direction</button>
-
-	    <button id="XX-slower-button">Slower</button>
-
-	    <button id="XX-faster-button">Faster</button>
+		
+		
+		<p>Press any mouse button and move the cursor to move room around</p>
 
 		</p>
-		
-		<p>YY rotation: 
-			
-		<button id="YY-on-off-button">On / Off</button>
+		<p>Rotate all Scene YY:
 
-	    <button id="YY-direction-button">Change Direction</button>
-
-	    <button id="YY-slower-button">Slower</button>
-
-	    <button id="YY-faster-button">Faster</button>
+		<button id="YYglobal-on-off-button">On / Off</button>
+		<button id="YYglobal-direction-button">Change Direction</button>
 
 		</p>
+
 		
-		<p>ZZ rotation: 
-			
-		<button id="ZZ-on-off-button">On / Off</button>
+		<p>Rotate all Scene ZZ:
 
-	    <button id="ZZ-direction-button">Change Direction</button>
-
-	    <button id="ZZ-slower-button">Slower</button>
-
-	    <button id="ZZ-faster-button">Faster</button>
+		<button id="ZZglobal-on-off-button">On / Off</button>
+		<button id="ZZglobal-direction-button">Change Direction</button>
 
 		</p>
-		
-		<p>Choose the <b>projection type</b>:
-		
-        <select id="projection-selection">
-			<option value="0">Orthogonal Projection</option>
-			<option value="1">Perspective Projection</option>
-        </select>
+		<p>Use the <code>Arrow Up</code>/<code>Arrow Down</code> zoom in/out <code>Arrow left</code>/<code>Arrow right</code> to translate the 2 spheres arrow the center</p>
+		<p>
+		<button id="Add-ball-back">Add more defined Ball</button>
+		</p>
+		<p>Turn On/Off lights:
+		<button id="Green-light-off">Green</button>
+		<button id="Red-light-off">Red</button>
+		<button id="Yellow-light-off">Yellow</button>
+		</p>
+
         
-        </p>
+
+		<button id="reset-button">Reset</button>
+		
+
         
 		
         				
